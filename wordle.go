@@ -229,7 +229,7 @@ var (
 
 		},
 		"wordle": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			solution := words.WordOfTheDay(0)
+			solution := words.WordOfTheDay(time.Now())
 			// var guess string
 			m, err := s.ChannelMessageSendEmbed(i.ChannelID, &discordgo.MessageEmbed{
 				Title: "Wordle X 1/6",
@@ -237,10 +237,13 @@ var (
 					`[0;45mABCDEFGHIJK` +
 					"\n```",
 			})
+			if err != nil {
+				panic(err)
+			}
 
 			fmt.Println(solution)
 
-			m, err = s.ChannelMessageEditEmbed(m.ChannelID, m.ID, &discordgo.MessageEmbed{})
+			_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.ID, &discordgo.MessageEmbed{})
 			// err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			// 	Type: discordgo.InteractionResponseChannelMessageWithSource,
 			// 	Data: &discordgo.InteractionResponseData{
