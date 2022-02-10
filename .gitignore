@@ -19,3 +19,6 @@
 
 # Go workspace file
 go.work
+
+# Used as a way to store sensitive auth information for running the bot
+.env
