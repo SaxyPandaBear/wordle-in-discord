@@ -102,8 +102,8 @@ var (
 )
 
 func TestConvertToGuess(t *testing.T) {
-	for i, test := range testCases {
-		t.Run(fmt.Sprintf("%s-%v", t.Name(), i), func(t *testing.T) {
+	for _, test := range testCases {
+		t.Run(test.input, func(t *testing.T) {
 			actual := ConvertToGuess(test.input, solution)
 			assert.Equal(t, test.guess, actual)
 		})
@@ -111,8 +111,8 @@ func TestConvertToGuess(t *testing.T) {
 }
 
 func TestFormatGuessToEmojis(t *testing.T) {
-	for i, test := range testCases {
-		t.Run(fmt.Sprintf("%s-%v", t.Name(), i), func(t *testing.T) {
+	for _, test := range testCases {
+		t.Run(test.input, func(t *testing.T) {
 			actual := FormatGuessToEmojis(test.guess)
 			assert.Equal(t, test.emojis, actual)
 		})
@@ -120,8 +120,8 @@ func TestFormatGuessToEmojis(t *testing.T) {
 }
 
 func TestFormatGuessToAnsiText(t *testing.T) {
-	for i, test := range testCases {
-		t.Run(fmt.Sprintf("%s-%v", t.Name(), i), func(t *testing.T) {
+	for _, test := range testCases {
+		t.Run(test.input, func(t *testing.T) {
 			actual := FormatGuess(test.guess)
 			assert.Equal(t, test.ansi, actual)
 		})

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/saxypandabear/wordlego/guess"
+	"github.com/saxypandabear/wordlego/game"
 	"github.com/saxypandabear/wordlego/words"
 
 	"github.com/bwmarrin/discordgo"
@@ -35,22 +35,8 @@ func init() {
 	}
 }
 
-// The struct keeps track of an individual user's guesses.
-// It also keeps track of the letters individually so it doesn't have
-// to be computed over every guess, every time.
-// The Letters array uses ternary state. See FormatGuess for the explanation of
-// this state. It is duplicated in the Guess struct for simplicity
-type WordleSession struct {
-	Solution  string
-	Letters   []int            // an array of ints that should be of size 26 to represent the chars
-	MessageID string           // keeps track of the originating message
-	Guesses   [][]*guess.Guess // guesses from the user
-}
-
-// FormatGuesses for a given Wordle session,
-func (ws *WordleSession) FormatGuesses() string {
-	return ""
-}
+// keep track of the active sessions
+var sessions = make(map[string]*game.WordleSession)
 
 // Important note: call every command in order it's placed in the example.
 
@@ -229,8 +215,13 @@ var (
 
 		},
 		"wordle": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			solution := words.WordOfTheDay(time.Now())
-			// var guess string
+			solution, err := words.WordOfTheDay(time.Now())
+			if err != nil {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+				})
+				return
+			}
 			m, err := s.ChannelMessageSendEmbed(i.ChannelID, &discordgo.MessageEmbed{
 				Title: "Wordle X 1/6",
 				Description: "```ansi\n" +

@@ -7,6 +7,16 @@ Play Wordle with a Discord bot.
 TBD
 
 ## Functionality
+
+### Implementation
+I'm following with a minimal understanding of Wordle, taking note
+of [double letter edge cases](https://www.reddit.com/r/wordle/comments/ry49ne/illustration_of_what_happens_when_your_guess_has/). 
+
+I am using the lists of words found [here](https://github.com/CrispyConductor/wordle-solver/tree/71b9f7c4c7f9e7fe57b7df85bb624265b0b8e17d). 
+It seems that Wordle keeps track of a static, deterministic list of words for solutions, and also
+maintains a separate list of allowed guesses.
+
+### Commands
 TBD
 
 ## Developer setup
@@ -23,12 +33,12 @@ to keep track of the required secrets.
 
 ### Testing
 Run unit tests:
-```
+```bash
 go test -v ./...
 ```
 
 Run benchmark tests:
-```
+```bash
 go test -v -bench . ./...
 ```
 
