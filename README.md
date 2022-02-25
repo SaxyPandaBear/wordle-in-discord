@@ -1,6 +1,8 @@
 Wordle For Discord
 ==================
 
+[![codecov](https://codecov.io/gh/SaxyPandaBear/wordle-in-discord/branch/main/graph/badge.svg?token=20EO8DCJPJ)](https://codecov.io/gh/SaxyPandaBear/wordle-in-discord)
+
 Play Wordle with a Discord bot.
 
 ## Gameplay Demo
