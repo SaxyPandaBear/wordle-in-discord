@@ -20,5 +20,11 @@
 # Go workspace file
 go.work
 
+# VSCode
+.vscode
+
 # Used as a way to store sensitive auth information for running the bot
 .env
+
+# Don't commit code coverage
+coverage.txt
