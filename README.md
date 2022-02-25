@@ -31,6 +31,11 @@ but I like to use `.env` for keeping track of my sensitive credentials while dev
 such, `.env` is ignored in Git, and `.env.template` is provided as a template for contributors
 to keep track of the required secrets.
 
+I am not using any dotenv style library to lookup/use the secrets currently for development. 
+The bot gets run by passing in the secrets as argument flags to the executable currently.
+
+TODO: Change to default to environment variables when this is ready to deploy.
+
 ### Testing
 Run unit tests:
 ```bash

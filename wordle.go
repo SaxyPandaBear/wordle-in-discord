@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/saxypandabear/wordlego/game"
-	"github.com/saxypandabear/wordlego/words"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -35,11 +34,7 @@ func init() {
 	}
 }
 
-// keep track of the active sessions
-var sessions = make(map[string]*game.WordleSession)
-
 // Important note: call every command in order it's placed in the example.
-
 var (
 	componentsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"fd_no": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -211,48 +206,7 @@ var (
 		},
 	}
 	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"wordle-guess": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
-		},
-		"wordle": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			solution, err := words.WordOfTheDay(time.Now())
-			if err != nil {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-				})
-				return
-			}
-			m, err := s.ChannelMessageSendEmbed(i.ChannelID, &discordgo.MessageEmbed{
-				Title: "Wordle X 1/6",
-				Description: "```ansi\n" +
-					`[0;45mABCDEFGHIJK` +
-					"\n```",
-			})
-			if err != nil {
-				panic(err)
-			}
-
-			fmt.Println(solution)
-
-			_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.ID, &discordgo.MessageEmbed{})
-			// err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			// 	Type: discordgo.InteractionResponseChannelMessageWithSource,
-			// 	Data: &discordgo.InteractionResponseData{
-			// 		Flags: 1 << 6,
-			// 		Embeds: []*discordgo.MessageEmbed{
-			// 			{
-			// 				Title: "Wordle X",
-			// 				Description: "```ansi\n" +
-			// 					`[0;45mABCDEFGHIJK` +
-			// 					"\n```",
-			// 			},
-			// 		},
-			// 	},
-			// })
-			if err != nil {
-				panic(err)
-			}
-		},
+		"wordle": game.Wordle,
 		"buttons": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -482,13 +436,46 @@ func main() {
 		Description: "Lo and behold: dropdowns are coming",
 	})
 	// Wordle game command registration
+	// This command is a single entrypoint for the Wordle game.
+	// It accepts different subcommand options (via a choice of set values),
+	// along with all of the necessary subcommand options for each of those actions.
 	_, err = s.ApplicationCommandCreate(*AppID, *GuildID, &discordgo.ApplicationCommand{
 		Name:        "wordle",
-		Description: "Play Wordle!",
-	})
-	_, err = s.ApplicationCommandCreate(*AppID, *GuildID, &discordgo.ApplicationCommand{
-		Name:        "wordle-guess",
-		Description: "Guess the word of the day",
+		Description: "Play Wordle! This initiates a new game for the player.",
+		Type:        discordgo.ChatApplicationCommand,
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        "action",
+				Description: "Action to invoke",
+				Required:    true,
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{
+						Name:  "start",
+						Value: "start",
+					},
+					{
+						Name:  "stop",
+						Value: "stop",
+					},
+					{
+						Name:  "guess",
+						Value: "guess",
+					},
+					{
+						Name:  "help",
+						Value: "help",
+					},
+				},
+			},
+			{
+				Type:         discordgo.ApplicationCommandOptionInteger,
+				Name:         "puzzle-num",
+				Description:  "Specific puzzle to try to solve. Defaults to the current day",
+				Required:     false,
+				Autocomplete: true,
+			},
+		},
 	})
 
 	if err != nil {
