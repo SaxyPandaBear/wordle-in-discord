@@ -19,7 +19,29 @@ It seems that Wordle keeps track of a static, deterministic list of words for so
 maintains a separate list of allowed guesses.
 
 ### Commands
-TBD
+There is one main slash command, `/wordle`. This is the main hook into the game. 
+
+From here, functionality is divided into sub "actions". The `action` parameter is required for the
+slash command, and is a choice from a static set of allowed string inputs.
+
+| Action | Description                               |
+| ------ | ----------------------------------------- |
+| start  | Initiates a new game for the user         |
+| stop   | Cancels an ongoing game for the user      |
+| guess  | Execute a single guess for an active game |
+| help   | Prints help info for the command          |
+
+#### Optional arguments
+Because all of the actions are in the umbrella of the `wordle` command, all of the sub parameters
+are lumped into this command, and therefore are not technically required by the slash command on discord,
+but are required in the bot logic.
+
+* `word`: The word to guess
+    * Required for: `guess`
+* `puzzle-num`: Specific puzzle to attempt. If not provided, defaults to the current day's word
+    * Optional for: `start`
+* `max-guesses`: Configuration for the maximum number of guesses for the puzzle when starting a new game
+    * Optional for: `start`
 
 ## Developer setup
 
@@ -27,16 +49,13 @@ TBD
 1. Golang installed - developed on 1.17.6
 1. See `go.mod` file for the libraries for development
 
-### dotenv secrets (optional)
-This is not a required part of setup, and it's not actively used in the development process,
-but I like to use `.env` for keeping track of my sensitive credentials while developing. As
-such, `.env` is ignored in Git, and `.env.template` is provided as a template for contributors
-to keep track of the required secrets.
-
-I am not using any dotenv style library to lookup/use the secrets currently for development. 
-The bot gets run by passing in the secrets as argument flags to the executable currently.
-
-TODO: Change to default to environment variables when this is ready to deploy.
+### dotenv secrets
+This uses the [godotenv port](https://github.com/joho/godotenv) in order to load secrets as environment
+variables. Look at the `./env.template` file as a reference. The main code loads in the environment variables
+so that it can default to those values, rather than relying on the `flag` inputs, i.e.:
+```bash
+./wordlego --guild 123 --app 456 --token abc123
+```
 
 ### Testing
 Run unit tests:
@@ -57,6 +76,7 @@ go test -v -bench . ./...
 1. Clone the repo and navigate to it
 1. Build the executable: `go build`
 1. Run the executable with the credentials passed in, for example on Windows: `.\wordlego.exe --guild 12345 --token abc123 --app 98765` (order doesn't matter for the flags)
+    * Note that you can optionally configure the `.env` file to store the secrets so you don't have to pass them in on the command line.
 1. You should see `Bot is up!` when the bot is stood up successfully, and properly registers the slash commands
 1. Go to the server you used as an input to the bot executable, and test out the slash commands yourself
 1. To stop the bot, just CTRL+C or SIGINTERRUPT the process.

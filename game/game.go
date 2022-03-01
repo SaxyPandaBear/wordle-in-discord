@@ -9,6 +9,24 @@ import (
 
 const DefaultMaxGuesses = 6
 
+type Action string
+
+const (
+	// Initiate a new game of Wordle.
+	// Acceptable optional inputs:
+	// 1. puzzle-num = Solution number for a specific word to guess - defaults to current day
+	// 1. max-guesses = configurable maximum number of guesses for the puzzle - defaults to 6
+	Start Action = "start"
+	// Terminates an active game of Wordle for the player
+	Stop Action = "stop"
+	// Guesses for the current active game session.
+	// Acceptable required inputs:
+	// 1. word = the attempted guess for the puzzle
+	Guess Action = "guess"
+	// Prints out information on the different actions and parameters to the user
+	Help Action = "help"
+)
+
 // The struct keeps track of an individual user's guesses.
 // It also keeps track of the letters individually so it doesn't have
 // to be computed over every guess, every time.

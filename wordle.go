@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/joho/godotenv"
 	"github.com/saxypandabear/wordlego/game"
 
 	"github.com/bwmarrin/discordgo"
@@ -13,24 +14,32 @@ import (
 
 // Bot parameters
 var (
-	GuildID  = flag.String("guild", os.Getenv("GUILD_ID"), "Test guild ID")
-	BotToken = flag.String("token", os.Getenv("TOKEN"), "Bot access token")
-	AppID    = flag.String("app", os.Getenv("APP_ID"), "Application ID")
+	GuildID  string
+	BotToken string
+	AppID    string
 )
 
 var s *discordgo.Session
 
-func init() { flag.Parse() }
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	flag.StringVar(&GuildID, "guild", os.Getenv("GUILDID"), "Test guild ID")
+	flag.StringVar(&BotToken, "token", os.Getenv("TOKEN"), "Bot access token")
+	flag.StringVar(&AppID, "app", os.Getenv("APPID"), "Application ID")
+}
 
 func init() {
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	s, err = discordgo.New("Bot " + BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
 }
 
-// Important note: call every command in order it's placed in the example.
 var (
 	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"wordle": game.Wordle,
@@ -54,13 +63,13 @@ func main() {
 	// This command is a single entrypoint for the Wordle game.
 	// It accepts different subcommand options (via a choice of set values),
 	// along with all of the necessary subcommand options for each of those actions.
-	_, err := s.ApplicationCommandCreate(*AppID, *GuildID, &discordgo.ApplicationCommand{
+	_, err := s.ApplicationCommandCreate(AppID, GuildID, &discordgo.ApplicationCommand{
 		Name:        "wordle",
 		Description: "Play Wordle! This initiates a new game for the player.",
 		Type:        discordgo.ChatApplicationCommand,
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "action",
 				Description: "Action to invoke",
 				Required:    true,
@@ -84,9 +93,23 @@ func main() {
 				},
 			},
 			{
+				Type:         discordgo.ApplicationCommandOptionString,
+				Name:         "word",
+				Description:  "Word to guess",
+				Required:     false,
+				Autocomplete: true,
+			},
+			{
 				Type:         discordgo.ApplicationCommandOptionInteger,
 				Name:         "puzzle-num",
 				Description:  "Specific puzzle to try to solve. Defaults to the current day",
+				Required:     false,
+				Autocomplete: true,
+			},
+			{
+				Type:         discordgo.ApplicationCommandOptionInteger,
+				Name:         "max-guesses",
+				Description:  "Configure the maximum number of guesses for the puzzle",
 				Required:     false,
 				Autocomplete: true,
 			},
