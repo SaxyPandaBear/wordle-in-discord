@@ -33,7 +33,8 @@ const (
 // The Letters array uses ternary state. See FormatGuess for the explanation of
 // this state. It is duplicated in the Guess struct for simplicity
 type WordleSession struct {
-	Solution          string
+	Puzzle            int              // the number of the specific Wordle puzzle
+	Solution          string           // the solution for the given session that the player must guess
 	Letters           []int            // an array of ints that should be of size 26 to represent the chars
 	MessageID         string           // keeps track of the originating message
 	Guesses           [][]*guess.Guess // guesses from the user, tracking correctness
@@ -43,8 +44,9 @@ type WordleSession struct {
 
 // NewSession creates a new session given a solution, Discord message ID and max number
 // of allowed guesses.
-func NewSession(solution, messageId string, allowedGuesses int) *WordleSession {
+func NewSession(solution, messageId string, allowedGuesses, puzzleNum int) *WordleSession {
 	ws := WordleSession{
+		Puzzle:            puzzleNum,
 		Solution:          solution,
 		Letters:           make([]int, 26),
 		MessageID:         messageId,
@@ -53,6 +55,21 @@ func NewSession(solution, messageId string, allowedGuesses int) *WordleSession {
 	}
 
 	return &ws
+}
+
+// SetMessageID sets the message ID, because the game session gets instantiated
+// prior to the message in the lifecycle. So there has to be a hook in order to
+// track the message ID after creation.
+func (ws *WordleSession) SetMessageID(messageId string) {
+	ws.MessageID = messageId
+}
+
+// PrintGame returns a string that represents the state of the session, in order
+// to display the game session in Discord chat.
+func (ws *WordleSession) PrintGame() string {
+	var b strings.Builder
+	// TODO: implement
+	return b.String()
 }
 
 // FormatGuesses takes all of the current guesses in the session, and generates
@@ -85,6 +102,7 @@ func (ws *WordleSession) FormatEmojis() string {
 // FormatUsedLetters takes all of the Letters and formats a string that illustrates
 // the letters that have been used and their correctness.
 func (ws *WordleSession) FormatUsedLetters() string {
+	// TODO: implement this
 	return ""
 }
 

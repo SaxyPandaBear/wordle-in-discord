@@ -76,19 +76,19 @@ func main() {
 				Choices: []*discordgo.ApplicationCommandOptionChoice{
 					{
 						Name:  "start",
-						Value: "start",
+						Value: game.Start,
 					},
 					{
 						Name:  "stop",
-						Value: "stop",
+						Value: game.Stop,
 					},
 					{
 						Name:  "guess",
-						Value: "guess",
+						Value: game.Guess,
 					},
 					{
 						Name:  "help",
-						Value: "help",
+						Value: game.Help,
 					},
 				},
 			},

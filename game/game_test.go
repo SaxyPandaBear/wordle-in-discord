@@ -11,11 +11,12 @@ import (
 const (
 	solution       = "party"
 	messageId      = "abc123"
+	puzzleNum      = 1
 	allowedGuesses = 6
 )
 
 func TestCreateNewSession(t *testing.T) {
-	ws := NewSession(solution, messageId, allowedGuesses)
+	ws := NewSession(solution, messageId, allowedGuesses, puzzleNum)
 	assert.Equal(t, solution, ws.Solution)
 	assert.Equal(t, messageId, ws.MessageID)
 	assert.Equal(t, allowedGuesses, ws.MaxAllowedGuesses)
@@ -23,13 +24,36 @@ func TestCreateNewSession(t *testing.T) {
 	assert.Equal(t, make([][]*guess.Guess, 0, allowedGuesses), ws.Guesses)
 }
 
-func TestSubmitGuess(t *testing.T) {
+func TestSetMessageID(t *testing.T) {
 	ws := testSetup()
-	assert.Len(t, ws.Guesses, 0)
-	assert.Len(t, ws.Attempts, 0)
-	ws.Guess("parts")
-	assert.Len(t, ws.Guesses, 1)
+	newId := "foo"
+	assert.NotEqual(t, newId, ws.MessageID)
+	ws.SetMessageID(newId)
+	assert.Equal(t, newId, ws.MessageID)
+}
+
+func TestGuess(t *testing.T) {
+	ws := testSetup()
+	err := ws.Guess("hello")
+	assert.NoError(t, err)
 	assert.Len(t, ws.Attempts, 1)
+	assert.Len(t, ws.Guesses, 1)
+	assert.Equal(t, "hello", ws.Attempts[0])
+}
+
+func TestGuessRepeatWord(t *testing.T) {
+	ws := testSetup()
+	g := "hello"
+	_ = ws.Guess(g)
+	err := ws.Guess(g)
+	assert.Error(t, err)
+	assert.Len(t, ws.Attempts, 1)
+	assert.Equal(t, g, ws.Attempts[0])
+	assert.Len(t, ws.Guesses, 1)
+	assert.EqualError(t, err, "hello has already been guessed in this player's session")
+	err = ws.Guess("beams")
+	assert.NoError(t, err)
+	assert.Len(t, ws.Attempts, 2)
 }
 
 func TestCanPlay(t *testing.T) {
@@ -47,15 +71,6 @@ func TestCanPlay(t *testing.T) {
 	assert.False(t, ws.CanPlay())
 }
 
-func TestDuplicatedGuessDoesNotCountAsNewGuess(t *testing.T) {
-	ws := testSetup()
-	ws.Guess("parts")
-	ws.Guess("parts")
-	assert.Len(t, ws.Guesses, 1)
-	assert.Len(t, ws.Attempts, 1)
-	assert.Equal(t, "parts", ws.Attempts[0])
-}
-
 func TestFormatEmojis(t *testing.T) {
 	ws := testSetup()
 	ws.Guess("pants")
@@ -71,5 +86,5 @@ func TestFormatEmojis(t *testing.T) {
 }
 
 func testSetup() *WordleSession {
-	return NewSession(solution, messageId, allowedGuesses)
+	return NewSession(solution, messageId, allowedGuesses, puzzleNum)
 }
