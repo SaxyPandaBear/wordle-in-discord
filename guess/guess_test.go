@@ -9,36 +9,39 @@ import (
 
 type testtable struct {
 	input  string
-	guess  []*Guess
+	guess  *Guess
 	emojis string
 	ansi   string
 }
 
+// TODO: Add a test that accounts for duplicate letters
 var (
 	solution  = "parts"
 	testCases = []testtable{
 		{
 			input: "parts",
-			guess: []*Guess{
-				{
-					Letter:      'p',
-					Correctness: 2,
-				},
-				{
-					Letter:      'a',
-					Correctness: 2,
-				},
-				{
-					Letter:      'r',
-					Correctness: 2,
-				},
-				{
-					Letter:      't',
-					Correctness: 2,
-				},
-				{
-					Letter:      's',
-					Correctness: 2,
+			guess: &Guess{
+				Letters: []*Letter{
+					{
+						Char:        'p',
+						Correctness: 2,
+					},
+					{
+						Char:        'a',
+						Correctness: 2,
+					},
+					{
+						Char:        'r',
+						Correctness: 2,
+					},
+					{
+						Char:        't',
+						Correctness: 2,
+					},
+					{
+						Char:        's',
+						Correctness: 2,
+					},
 				},
 			},
 			emojis: GreenSquare + GreenSquare + GreenSquare + GreenSquare + GreenSquare,
@@ -46,26 +49,28 @@ var (
 		},
 		{
 			input: "snail",
-			guess: []*Guess{
-				{
-					Letter:      's',
-					Correctness: 1,
-				},
-				{
-					Letter:      'n',
-					Correctness: 0,
-				},
-				{
-					Letter:      'a',
-					Correctness: 1,
-				},
-				{
-					Letter:      'i',
-					Correctness: 0,
-				},
-				{
-					Letter:      'l',
-					Correctness: 0,
+			guess: &Guess{
+				Letters: []*Letter{
+					{
+						Char:        's',
+						Correctness: 1,
+					},
+					{
+						Char:        'n',
+						Correctness: 0,
+					},
+					{
+						Char:        'a',
+						Correctness: 1,
+					},
+					{
+						Char:        'i',
+						Correctness: 0,
+					},
+					{
+						Char:        'l',
+						Correctness: 0,
+					},
 				},
 			},
 			emojis: YellowSquare + BlackSquare + YellowSquare + BlackSquare + BlackSquare,
@@ -73,26 +78,28 @@ var (
 		},
 		{
 			input: "pants",
-			guess: []*Guess{
-				{
-					Letter:      'p',
-					Correctness: 2,
-				},
-				{
-					Letter:      'a',
-					Correctness: 2,
-				},
-				{
-					Letter:      'n',
-					Correctness: 0,
-				},
-				{
-					Letter:      't',
-					Correctness: 2,
-				},
-				{
-					Letter:      's',
-					Correctness: 2,
+			guess: &Guess{
+				Letters: []*Letter{
+					{
+						Char:        'p',
+						Correctness: 2,
+					},
+					{
+						Char:        'a',
+						Correctness: 2,
+					},
+					{
+						Char:        'n',
+						Correctness: 0,
+					},
+					{
+						Char:        't',
+						Correctness: 2,
+					},
+					{
+						Char:        's',
+						Correctness: 2,
+					},
 				},
 			},
 			emojis: GreenSquare + GreenSquare + BlackSquare + GreenSquare + GreenSquare,
@@ -100,6 +107,40 @@ var (
 		},
 	}
 )
+
+func TestColoredText(t *testing.T) {
+	letter := Letter{
+		Char:        'b',
+		Correctness: 2,
+	}
+	assert.Equal(t, GreenText+"b", letter.ColoredText())
+
+	letter.Correctness = 1
+	assert.Equal(t, YellowText+"b", letter.ColoredText())
+
+	letter.Correctness = 0
+	assert.Equal(t, DefaultText+"b", letter.ColoredText())
+
+	letter.Correctness = -10032431 // random unused number
+	assert.Equal(t, DefaultText+"b", letter.ColoredText())
+}
+
+func TestEmoji(t *testing.T) {
+	letter := Letter{
+		Char:        'b',
+		Correctness: 2,
+	}
+	assert.Equal(t, GreenSquare, letter.Emoji())
+
+	letter.Correctness = 1
+	assert.Equal(t, YellowSquare, letter.Emoji())
+
+	letter.Correctness = 0
+	assert.Equal(t, BlackSquare, letter.Emoji())
+
+	letter.Correctness = 57381234
+	assert.Equal(t, BlackSquare, letter.Emoji())
+}
 
 func TestConvertToGuess(t *testing.T) {
 	for _, test := range testCases {
@@ -137,59 +178,63 @@ func BenchmarkConvertToGuess(b *testing.B) {
 }
 
 func BenchmarkConvertGuessToEmojis(b *testing.B) {
-	guess := []*Guess{
-		{
-			Letter:      'p',
-			Correctness: 2,
-		},
-		{
-			Letter:      'a',
-			Correctness: 2,
-		},
-		{
-			Letter:      'r',
-			Correctness: 2,
-		},
-		{
-			Letter:      't',
-			Correctness: 2,
-		},
-		{
-			Letter:      's',
-			Correctness: 2,
+	guess := Guess{
+		Letters: []*Letter{
+			{
+				Char:        'p',
+				Correctness: 2,
+			},
+			{
+				Char:        'a',
+				Correctness: 2,
+			},
+			{
+				Char:        'r',
+				Correctness: 2,
+			},
+			{
+				Char:        't',
+				Correctness: 2,
+			},
+			{
+				Char:        's',
+				Correctness: 2,
+			},
 		},
 	}
 
 	for i := 0; i < b.N; i++ {
-		FormatGuessToEmojis(guess)
+		FormatGuessToEmojis(&guess)
 	}
 }
 
 func BenchmarkConvertGuessToAnsiText(b *testing.B) {
-	guess := []*Guess{
-		{
-			Letter:      'p',
-			Correctness: 2,
-		},
-		{
-			Letter:      'a',
-			Correctness: 2,
-		},
-		{
-			Letter:      'r',
-			Correctness: 2,
-		},
-		{
-			Letter:      't',
-			Correctness: 2,
-		},
-		{
-			Letter:      's',
-			Correctness: 2,
+	guess := Guess{
+		Letters: []*Letter{
+			{
+				Char:        'p',
+				Correctness: 2,
+			},
+			{
+				Char:        'a',
+				Correctness: 2,
+			},
+			{
+				Char:        'r',
+				Correctness: 2,
+			},
+			{
+				Char:        't',
+				Correctness: 2,
+			},
+			{
+				Char:        's',
+				Correctness: 2,
+			},
 		},
 	}
 
 	for i := 0; i < b.N; i++ {
-		FormatGuess(guess)
+		FormatGuess(&guess)
 	}
 }

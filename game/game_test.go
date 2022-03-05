@@ -21,7 +21,7 @@ func TestCreateNewSession(t *testing.T) {
 	assert.Equal(t, messageId, ws.MessageID)
 	assert.Equal(t, allowedGuesses, ws.MaxAllowedGuesses)
 	assert.Equal(t, make([]int, 26), ws.Letters)
-	assert.Equal(t, make([][]*guess.Guess, 0, allowedGuesses), ws.Guesses)
+	assert.Equal(t, make([]*guess.Guess, 0, allowedGuesses), ws.Guesses)
 }
 
 func TestSetMessageID(t *testing.T) {
@@ -56,6 +56,12 @@ func TestGuessRepeatWord(t *testing.T) {
 	assert.Len(t, ws.Attempts, 2)
 }
 
+func TestGuessUpdatesLetterCorrectness(t *testing.T) {
+	ws := testSetup()
+	_ = ws.Guess("pants")
+
+}
+
 func TestCanPlay(t *testing.T) {
 	ws := testSetup()
 	assert.True(t, ws.CanPlay())
@@ -68,6 +74,18 @@ func TestCanPlay(t *testing.T) {
 	// should be able to attempt 1 more
 	assert.True(t, ws.CanPlay())
 	ws.Guess("heart")
+	assert.False(t, ws.CanPlay())
+}
+
+func TestSolving(t *testing.T) {
+	ws := testSetup()
+	assert.True(t, ws.CanPlay())
+	assert.False(t, ws.IsSolved())
+	err := ws.Guess(solution)
+	assert.NoError(t, err)
+	assert.True(t, ws.IsSolved())
+	// even though there was only one guess for the game session,
+	// should not be able to play again because it was solved
 	assert.False(t, ws.CanPlay())
 }
 
