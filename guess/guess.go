@@ -20,6 +20,9 @@ type Letter struct {
 	Correctness int
 }
 
+// ColoredText returns an ANSI formatted string that highlights the rune
+// with a colored background based on the correctness of the letter within
+// the context of the guess.
 func (l *Letter) ColoredText() string {
 	var col string
 	if l.Correctness == 2 {
@@ -32,6 +35,8 @@ func (l *Letter) ColoredText() string {
 	return col + string(l.Char)
 }
 
+// Emoji returns an emoji that is based on the correctness of the letter
+// within the context of the guess.
 func (l *Letter) Emoji() string {
 	switch l.Correctness {
 	case 0:
@@ -45,6 +50,9 @@ func (l *Letter) Emoji() string {
 	}
 }
 
+// ConvertToGuess takes a word string, and the reference solution string, and
+// returns a Guess struct that represents the overall correctness/accuracy of
+// the guess when compared to the solution.
 func ConvertToGuess(word, solution string) *Guess {
 	letters := make([]*Letter, len(solution))
 	for i, c := range word {
@@ -52,7 +60,7 @@ func ConvertToGuess(word, solution string) *Guess {
 		var correctness int
 		if i == idx {
 			correctness = 2
-		} else if idx >= 0 {
+		} else if idx >= 0 { // TODO: account for duplicate letters?
 			correctness = 1
 		} else {
 			correctness = 0 // TODO: Update this to use -1, and add a 4th color to indicate incorrectness
