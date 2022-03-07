@@ -1,8 +1,9 @@
 name: build-and-test
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
+  push:
+    branches: main
+    paths-ignore:
+      - '**.md'
 
 jobs:
   build:
@@ -26,7 +27,12 @@ jobs:
         key: ${{ hashFiles('**/go.sum') }}
 
     - name: Test
-      run: CGO_ENABLED=0 go test -failfast -v ./...
+      run: CGO_ENABLED=0 go test -coverprofile coverage.txt -failfast -v -bench . ./...
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        verbose: true
 
     - name: Build
       run: CGO_ENABLED=0 go build

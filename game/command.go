@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -41,27 +40,6 @@ func Wordle(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		})
 	}
-
-	// TODO: Working on this
-	solution, err := words.WordOfTheDay(time.Now())
-	if err != nil {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-		})
-		return
-	}
-	m, err := s.ChannelMessageSendEmbed(i.ChannelID, &discordgo.MessageEmbed{
-		Title: "Wordle X 1/6",
-		Description: "```ansi\n" +
-			`[0;45mABCDEFGHIJK` +
-			"\n```",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(m.ID)
-	fmt.Println(solution)
 }
 
 // ParseCommandInputs takes the Discord application command data and then
@@ -128,7 +106,7 @@ func start(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandAr
 	m, err := s.ChannelMessageSend(i.ChannelID, "Wordle "+i.Member.Mention())
 
 	if err != nil {
-		delete(sessions, i.Message.Author.Username)
+		delete(sessions, i.Message.Author.Username) // if there was an error, undo the state change
 		return
 	}
 	gameSession.SetMessageID(m.ID)

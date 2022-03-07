@@ -127,7 +127,12 @@ func (ws *WordleSession) IsSolved() bool {
 
 // Guess attempts to guess with the input word, against the solution, with Worlde
 // rules. This assumes that the input exists in the `words/wordbank.go` list of valid
-// guesses. This returns an error if the input guess has already been used in this session.
+// guesses.
+// Note that this function DOES have side effects. It updates the state of the game
+// session by appending the new guess, updating the colored letters, and updating the
+// flag that determines whether or not the solution has been guessed correctly.
+// This function returns an error in the scenario where the given word argument
+// has already been used in this game session.
 func (ws *WordleSession) Guess(word string) error {
 	for _, attempt := range ws.Attempts {
 		if attempt == word {
