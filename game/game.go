@@ -2,6 +2,7 @@ package game
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/saxypandabear/wordlego/guess"
@@ -9,22 +10,20 @@ import (
 
 const DefaultMaxGuesses = 6
 
-type Action string
-
 const (
 	// Initiate a new game of Wordle.
 	// Acceptable optional inputs:
 	// 1. puzzle-num = Solution number for a specific word to guess - defaults to current day
 	// 1. max-guesses = configurable maximum number of guesses for the puzzle - defaults to 6
-	Start Action = "start"
+	Start string = "start"
 	// Terminates an active game of Wordle for the player
-	Stop Action = "stop"
+	Stop string = "stop"
 	// Guesses for the current active game session.
 	// Acceptable required inputs:
 	// 1. word = the attempted guess for the puzzle
-	Guess Action = "guess"
+	Guess string = "guess"
 	// Prints out information on the different actions and parameters to the user
-	Help Action = "help"
+	Help string = "help"
 )
 
 // The struct keeps track of an individual user's guesses.
@@ -36,7 +35,6 @@ type WordleSession struct {
 	Puzzle            int            // the number of the specific Wordle puzzle
 	Solution          string         // the solution for the given session that the player must guess
 	Letters           []int          // an array of ints that should be of size 26 to represent the chars
-	MessageID         string         // keeps track of the originating message
 	Guesses           []*guess.Guess // guesses from the user, tracking correctness
 	Attempts          []string       // raw guesses from the user
 	MaxAllowedGuesses int            // the maximum number of attempts the player has to guess the solution
@@ -45,12 +43,11 @@ type WordleSession struct {
 
 // NewSession creates a new session given a solution, Discord message ID and max number
 // of allowed guesses.
-func NewSession(solution, messageId string, allowedGuesses, puzzleNum int) *WordleSession {
+func NewSession(solution string, allowedGuesses, puzzleNum int) *WordleSession {
 	ws := WordleSession{
 		Puzzle:            puzzleNum,
 		Solution:          solution,
 		Letters:           make([]int, 26),
-		MessageID:         messageId,
 		Guesses:           make([]*guess.Guess, 0, allowedGuesses),
 		MaxAllowedGuesses: allowedGuesses,
 	}
@@ -58,18 +55,17 @@ func NewSession(solution, messageId string, allowedGuesses, puzzleNum int) *Word
 	return &ws
 }
 
-// SetMessageID sets the message ID, because the game session gets instantiated
-// prior to the message in the lifecycle. So there has to be a hook in order to
-// track the message ID after creation.
-func (ws *WordleSession) SetMessageID(messageId string) {
-	ws.MessageID = messageId
-}
-
 // PrintGame returns a string that represents the state of the session, in order
 // to display the game session in Discord chat.
 func (ws *WordleSession) PrintGame() string {
 	var b strings.Builder
 	// TODO: implement
+	b.WriteString("```ansi\n") // start ANSI code block
+	b.WriteString(fmt.Sprintf("Wordle %d: %d/%d\n", ws.Puzzle, len(ws.Attempts), ws.MaxAllowedGuesses))
+	b.WriteString(ws.FormatGuesses(false)) // setting to "true" would include the code block chars
+	b.WriteString("\n")
+	b.WriteString(ws.FormatUsedLetters())
+	b.WriteString("```") // close code block
 	return b.String()
 }
 
@@ -77,26 +73,34 @@ func (ws *WordleSession) PrintGame() string {
 // the ANSI formatted string to display in Discord that highlights the letters
 // in the guesses based on Wordle rules. See wordlego/guess for the formatting
 // rules. This function formats all of the guesses with the characters visible.
-func (ws *WordleSession) FormatGuesses() string {
+func (ws *WordleSession) FormatGuesses(enclosed bool) string {
 	var b strings.Builder
-	b.WriteString("```ansi\n") // start ANSI code block
+	if enclosed {
+		b.WriteString("```ansi\n") // start ANSI code block
+	}
 	for _, g := range ws.Guesses {
 		b.WriteString(guess.FormatGuess(g) + "\n")
 	}
-	b.WriteString("```") // close code block
+	if enclosed {
+		b.WriteString("```") // close code block
+	}
 	return b.String()
 }
 
 // FormatEmojis takes all of the current guesses in the session, and generates
 // the ANSI formatted string to display in Discord that shows all of the guesses
 // in emoji form, in the popularized Wordle format.
-func (ws *WordleSession) FormatEmojis() string {
+func (ws *WordleSession) FormatEmojis(enclosed bool) string {
 	var b strings.Builder
-	b.WriteString("```ansi\n")
+	if enclosed {
+		b.WriteString("```ansi\n") // start ANSI code block
+	}
 	for _, g := range ws.Guesses {
 		b.WriteString(guess.FormatGuessToEmojis(g) + "\n")
 	}
-	b.WriteString("```")
+	if enclosed {
+		b.WriteString("```") // close code block
+	}
 	return b.String()
 }
 

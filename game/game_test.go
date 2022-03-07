@@ -10,26 +10,16 @@ import (
 
 const (
 	solution       = "party"
-	messageId      = "abc123"
 	puzzleNum      = 1
 	allowedGuesses = 6
 )
 
 func TestCreateNewSession(t *testing.T) {
-	ws := NewSession(solution, messageId, allowedGuesses, puzzleNum)
+	ws := NewSession(solution, allowedGuesses, puzzleNum)
 	assert.Equal(t, solution, ws.Solution)
-	assert.Equal(t, messageId, ws.MessageID)
 	assert.Equal(t, allowedGuesses, ws.MaxAllowedGuesses)
 	assert.Equal(t, make([]int, 26), ws.Letters)
 	assert.Equal(t, make([]*guess.Guess, 0, allowedGuesses), ws.Guesses)
-}
-
-func TestSetMessageID(t *testing.T) {
-	ws := testSetup()
-	newId := "foo"
-	assert.NotEqual(t, newId, ws.MessageID)
-	ws.SetMessageID(newId)
-	assert.Equal(t, newId, ws.MessageID)
 }
 
 func TestGuess(t *testing.T) {
@@ -93,7 +83,7 @@ func TestFormatEmojis(t *testing.T) {
 	ws := testSetup()
 	ws.Guess("pants")
 	ws.Guess("party")
-	s := ws.FormatEmojis()
+	s := ws.FormatEmojis(true)
 	var b strings.Builder
 	b.WriteString("```ansi\n")
 	b.WriteString(guess.GreenSquare + guess.GreenSquare + guess.BlackSquare + guess.GreenSquare + guess.BlackSquare + "\n")
@@ -101,8 +91,15 @@ func TestFormatEmojis(t *testing.T) {
 	b.WriteString("```")
 
 	assert.Equal(t, b.String(), s)
+
+	b.Reset()
+	s = ws.FormatEmojis(false)
+	b.WriteString(guess.GreenSquare + guess.GreenSquare + guess.BlackSquare + guess.GreenSquare + guess.BlackSquare + "\n")
+	b.WriteString(strings.Repeat(guess.GreenSquare, 5) + "\n")
+
+	assert.Equal(t, b.String(), s)
 }
 
 func testSetup() *WordleSession {
-	return NewSession(solution, messageId, allowedGuesses, puzzleNum)
+	return NewSession(solution, allowedGuesses, puzzleNum)
 }

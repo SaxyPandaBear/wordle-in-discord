@@ -12,7 +12,7 @@ import (
 var sessions = make(map[string]*WordleSession) // TODO: how to make this survive an outage?
 
 type CommandArgs struct {
-	GameAction Action
+	GameAction string
 	Word       string
 	PuzzleNum  int
 	MaxGuesses int
@@ -47,7 +47,7 @@ func Wordle(s *discordgo.Session, i *discordgo.InteractionCreate) {
 // a comprehensible name, for ease of use. This assumes that the action (at index 0)
 // exists, since that is a required argument.
 func ParseCommandInputs(data discordgo.ApplicationCommandInteractionData) *CommandArgs {
-	action := data.Options[0].Value.(Action)
+	action := data.Options[0].Value.(string)
 
 	word := ""
 	if len(data.Options) >= 2 {
@@ -77,8 +77,9 @@ func ParseCommandInputs(data discordgo.ApplicationCommandInteractionData) *Comma
 // start initiates a new game for the user. if the user already has an
 // active game session, this emits a failure message to the user indicating such.
 func start(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandArgs) {
-	if _, ok := sessions[i.Message.Author.Username]; !ok {
+	if _, exists := sessions[i.Member.User.ID]; exists {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Flags:   1 << 6,
 				Content: "You already have an active game. Keep guessing, or use /wordle stop to cancel the active session.",
@@ -91,6 +92,7 @@ func start(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandAr
 	if err != nil {
 		log.Printf("Exception occurred when trying to get a solution for the game: %s\n", err.Error())
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Flags:   1 << 6,
 				Content: "An error occurred when trying to get a solution for your game. Contact the bot owner.",
@@ -99,17 +101,21 @@ func start(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandAr
 		return
 	}
 
-	gameSession := NewSession(sol, "", args.MaxGuesses, args.PuzzleNum)
-	sessions[i.Message.Author.Username] = gameSession
+	gameSession := NewSession(sol, args.MaxGuesses, args.PuzzleNum)
+	sessions[i.Member.User.ID] = gameSession
 
-	// TODO: figure this out
-	m, err := s.ChannelMessageSend(i.ChannelID, "Wordle "+i.Member.Mention())
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: gameSession.PrintGame(),
+		},
+	})
+	// m, err := s.ChannelMessageSend(i.ChannelID, i.Member.Mention()+"\n"+gameSession.PrintGame())
 
 	if err != nil {
-		delete(sessions, i.Message.Author.Username) // if there was an error, undo the state change
+		delete(sessions, i.Member.User.ID) // if there was an error, undo the state change
 		return
 	}
-	gameSession.SetMessageID(m.ID)
 }
 
 func stop(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandArgs) {

@@ -37,7 +37,7 @@ func GetSpecificWordleSolution(num int) (string, error) {
 // to derive the index in the solution array. This assumes that the input >= startDate
 func DetermineWordForDay(date time.Time) int {
 	utc := date.UTC().Truncate(oneDay)
-	return int(utc.Sub(startDate).Hours() / oneDay.Hours())
+	return int(utc.Sub(startDate).Hours()/oneDay.Hours()) - 1
 }
 
 // IsGuessValid takes an input string and checks if the string is an allowed guess
