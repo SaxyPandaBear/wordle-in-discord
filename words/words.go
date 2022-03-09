@@ -44,7 +44,15 @@ func DetermineWordForDay(date time.Time) int {
 // input by checking it against the list of allowed words. This performs a binary search
 // for at least some nomimal optimizations
 func IsGuessValid(s string) bool {
-	idx := sort.Search(len(AllowedWords), func(i int) bool {
+	sols := GetSortedSolutions()
+	idx := sort.Search(len(sols), func(i int) bool {
+		return i < len(sols) && sols[i] >= s
+	})
+	found := sols[idx] == s
+	if found {
+		return true
+	}
+	idx = sort.Search(len(AllowedWords), func(i int) bool {
 		return i < len(AllowedWords) && AllowedWords[i] >= s
 	})
 	return AllowedWords[idx] == s

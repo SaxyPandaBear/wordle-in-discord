@@ -45,7 +45,7 @@ var (
 				},
 			},
 			emojis: GreenSquare + GreenSquare + GreenSquare + GreenSquare + GreenSquare,
-			ansi:   fmt.Sprintf("%vp%va%vr%vt%vs", GreenText, GreenText, GreenText, GreenText, GreenText),
+			ansi:   fmt.Sprintf("%vp%va%vr%vt%vs%v", GreenText, GreenText, GreenText, GreenText, GreenText, ResetText),
 		},
 		{
 			input: "snail",
@@ -74,7 +74,7 @@ var (
 				},
 			},
 			emojis: YellowSquare + BlackSquare + YellowSquare + BlackSquare + BlackSquare,
-			ansi:   fmt.Sprintf("%vs%vn%va%vi%vl", YellowText, DefaultText, YellowText, DefaultText, DefaultText),
+			ansi:   fmt.Sprintf("%vs%vn%va%vi%vl%v", YellowText, DefaultText, YellowText, DefaultText, DefaultText, ResetText),
 		},
 		{
 			input: "pants",
@@ -103,7 +103,7 @@ var (
 				},
 			},
 			emojis: GreenSquare + GreenSquare + BlackSquare + GreenSquare + GreenSquare,
-			ansi:   fmt.Sprintf("%vp%va%vn%vt%vs", GreenText, GreenText, DefaultText, GreenText, GreenText),
+			ansi:   fmt.Sprintf("%vp%va%vn%vt%vs%v", GreenText, GreenText, DefaultText, GreenText, GreenText, ResetText),
 		},
 	}
 )

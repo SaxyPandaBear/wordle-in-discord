@@ -9,6 +9,9 @@ import (
 func TestIsGuessValidFindsWord(t *testing.T) {
 	guess := "abler"
 	assert.True(t, IsGuessValid(guess))
+
+	guess = "hoard"
+	assert.True(t, IsGuessValid(guess)) // word in solutions but not allowed guesses
 }
 
 func TestIsGuessValidDoesNotFindWord(t *testing.T) {

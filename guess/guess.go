@@ -6,9 +6,10 @@ const (
 	GreenSquare  = "🟩"
 	YellowSquare = "🟨"
 	BlackSquare  = "⬛"
-	GreenText    = "[1;32m"
-	YellowText   = "[1:33m"
-	DefaultText  = "[0m"
+	GreenText    = "[0m[1;32m"
+	YellowText   = "[0m[1:33m"
+	DefaultText  = "[0m[1;37m"
+	ResetText    = "[0m"
 )
 
 type Guess struct {
@@ -86,6 +87,7 @@ func FormatGuess(guess *Guess) string {
 	for _, l := range guess.Letters {
 		b.WriteString(l.ColoredText())
 	}
+	b.WriteString(ResetText)
 	return b.String()
 }
 

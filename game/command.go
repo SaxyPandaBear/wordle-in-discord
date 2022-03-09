@@ -1,7 +1,9 @@
 package game
 
 import (
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -21,6 +23,17 @@ type CommandArgs struct {
 // Wordle is the hook for the bot to execute the wordle game functionality.
 // This acts as the main game loop.
 func Wordle(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if i.Member == nil {
+		// this isn't being called from within a guild. TODO: allow playing Wordle in direct messages
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: "Wordle can only be played in a server.",
+			},
+		})
+	}
+
 	args := ParseCommandInputs(i.ApplicationCommandData())
 	switch args.GameAction {
 	case Start:
@@ -51,7 +64,7 @@ func ParseCommandInputs(data discordgo.ApplicationCommandInteractionData) *Comma
 
 	word := ""
 	if len(data.Options) >= 2 {
-		word = data.Options[1].StringValue()
+		word = strings.ToLower(data.Options[1].StringValue())
 	}
 
 	var puzzleNum int
@@ -107,10 +120,9 @@ func start(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandAr
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: gameSession.PrintGame(),
+			Content: gameSession.PrintGame(false),
 		},
 	})
-	// m, err := s.ChannelMessageSend(i.ChannelID, i.Member.Mention()+"\n"+gameSession.PrintGame())
 
 	if err != nil {
 		delete(sessions, i.Member.User.ID) // if there was an error, undo the state change
@@ -129,11 +141,80 @@ func stop(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandArg
 }
 
 func guessWord(s *discordgo.Session, i *discordgo.InteractionCreate, args *CommandArgs) {
+	var sess *WordleSession
+	var ok bool
+	if sess, ok = sessions[i.Member.User.ID]; !ok {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: "You haven't started a game yet. Start one with /wordle start",
+			},
+		})
+		return
+	}
+	if args.Word == "" {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: "No guess parameter provided",
+			},
+		})
+		return
+	}
+	if !words.IsGuessValid(args.Word) {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: fmt.Sprintf("'%s' is not a valid guess", args.Word),
+			},
+		})
+		return
+	}
+
+	err := sess.Guess(args.Word)
+	if err != nil {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: err.Error(),
+			},
+		})
+		return
+	}
+
+	if sess.IsSolved() {
+		// player solved the puzzle. share it
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "You guessed the word!\n" + sess.PrintGame(true),
+			},
+		})
+		delete(sessions, i.Member.User.ID)
+		return
+	}
+	if !sess.CanPlay() {
+		// can't play anymore because the player ran out of tries (different outcome
+		// than solving the puzzle).
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "You ran out of guesses!\n" + sess.PrintGame(true),
+			},
+		})
+		delete(sessions, i.Member.User.ID)
+		return
+	}
+
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags:   1 << 6,
-			Content: "Not implemented yet",
+			Content: sess.PrintGame(false),
 		},
 	})
 }

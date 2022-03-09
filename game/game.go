@@ -57,14 +57,23 @@ func NewSession(solution string, allowedGuesses, puzzleNum int) *WordleSession {
 
 // PrintGame returns a string that represents the state of the session, in order
 // to display the game session in Discord chat.
-func (ws *WordleSession) PrintGame() string {
+func (ws *WordleSession) PrintGame(hideGuesses bool) string {
+	var displayedGuesses string
+	if hideGuesses {
+		displayedGuesses = ws.FormatEmojis(false) // setting to "true" would include the code block chars
+	} else {
+		displayedGuesses = ws.FormatGuesses(false) // setting to "true" would include the code block chars
+	}
 	var b strings.Builder
 	// TODO: implement
 	b.WriteString("```ansi\n") // start ANSI code block
 	b.WriteString(fmt.Sprintf("Wordle %d: %d/%d\n", ws.Puzzle, len(ws.Attempts), ws.MaxAllowedGuesses))
-	b.WriteString(ws.FormatGuesses(false)) // setting to "true" would include the code block chars
-	b.WriteString("\n")
-	b.WriteString(ws.FormatUsedLetters())
+	b.WriteString(displayedGuesses)
+
+	if !hideGuesses {
+		b.WriteString("\n")
+		b.WriteString(ws.FormatUsedLetters())
+	}
 	b.WriteString("```") // close code block
 	return b.String()
 }
@@ -115,7 +124,7 @@ func (ws *WordleSession) FormatEmojis(enclosed bool) string {
 // todo here.
 func (ws *WordleSession) FormatUsedLetters() string {
 	// TODO: implement this
-	return ""
+	return "foo"
 }
 
 // CanPlay verifies that the number of guesses in the session does not exceed
