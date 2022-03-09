@@ -48,12 +48,12 @@ func IsGuessValid(s string) bool {
 	idx := sort.Search(len(sols), func(i int) bool {
 		return i < len(sols) && sols[i] >= s
 	})
-	found := sols[idx] == s
+	found := idx < len(sols) && sols[idx] == s
 	if found {
 		return true
 	}
 	idx = sort.Search(len(AllowedWords), func(i int) bool {
 		return i < len(AllowedWords) && AllowedWords[i] >= s
 	})
-	return AllowedWords[idx] == s
+	return idx < len(AllowedWords) && AllowedWords[idx] == s
 }
